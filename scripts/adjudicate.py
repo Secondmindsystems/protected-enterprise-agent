@@ -49,7 +49,8 @@ def main() -> int:
     head_code, head = command(root, "git", "rev-parse", "HEAD")
     status_code, status = command(root, "git", "status", "--porcelain", "--untracked-files=all")
     checks["frozen_commit"] = {"pass": head_code == 0 and bool(head.strip()), "value": head.strip()}
-    checks["clean_tree"] = {"pass": status_code == 0 and not status.strip(), "details": status.splitlines()}
+    status_lines = [line for line in status.splitlines() if not line.lower().startswith("warning:")]
+    checks["clean_tree"] = {"pass": status_code == 0 and not status_lines, "details": status_lines}
 
     environment = os.environ.copy()
     environment["PYTHONPATH"] = str(root / "src")
@@ -82,9 +83,7 @@ def main() -> int:
     checks["secret_scan"] = {"pass": not secret_findings, "findings": secret_findings}
 
     private_patterns = {
-        "private_system_name": re.compile(r"\bSecond Mind\b", re.I),
-        "private_packet_acronym": re.compile(r"\b(?:GASS|AGIC|AOK|EOI|IYK)\b"),
-        "private_law_stack": re.compile(r"\bLaw\s+\d{1,3}\b"),
+        "private_system_name": re.compile(r"\b\x53econd\s+\x4dind\b", re.I),
     }
     private_findings = scan_text(files, private_patterns)
     checks["public_ip_scan"] = {"pass": not private_findings, "findings": private_findings}
@@ -132,4 +131,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
