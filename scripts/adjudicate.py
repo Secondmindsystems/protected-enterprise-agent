@@ -66,7 +66,10 @@ def main() -> int:
     if args.require_vendor:
         try:
             vendor = run(root, require_vendor=True)
-            checks["vendor_qualification"] = {"pass": vendor["vendor_observed"] and all(vendor[key] for key in ("security", "utility", "adversarial", "evidence", "public_estate")), "result": vendor}
+            checks["vendor_qualification"] = {
+                "pass": vendor["vendor_qualified"] and all(vendor[key] for key in ("security", "utility", "adversarial", "evidence", "public_estate")),
+                "result": vendor,
+            }
         except Exception as exc:
             checks["vendor_qualification"] = {"pass": False, "error_type": type(exc).__name__, "message": str(exc)}
     else:
@@ -108,7 +111,7 @@ def main() -> int:
         state = "QUALIFIED_FOR_OPERATOR_EXTERNALIZATION"
     elif vendor_failed and all(name == "vendor_qualification" for name in failed):
         disposition = "HOLD"
-        state = "READY_FOR_VENDOR_QUALIFICATION"
+        state = "OPERATOR_CONTAINER_RUNTIME_ONLY"
     else:
         disposition = "REPAIR_REQUIRED"
         state = "NOT_READY"

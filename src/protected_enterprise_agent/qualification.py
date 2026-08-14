@@ -16,6 +16,7 @@ from .providers import (
     ProtegritySemanticGuardrailClient,
 )
 from .security import find_forbidden, load_leak_manifest, scan_paths
+from .vendor_qualification import evaluate_vendor_qualification, observe_runtime
 
 
 SCENARIOS = (
@@ -45,6 +46,7 @@ def run(root: Path, require_vendor: bool) -> dict[str, Any]:
     forbidden = load_leak_manifest(root / "fixtures" / "leak_manifest.json")
     run_dir = root / "evidence" / "runs" / "latest"
     run_dir.mkdir(parents=True, exist_ok=True)
+    runtime_observation = observe_runtime() if require_vendor else {"pinned_vendor_runtime_observed": False, "mode": "test-double"}
     writer = EvidenceWriter(run_dir / "EVIDENCE_EVENTS.jsonl", forbidden)
     discovery = ProtegrityDiscoveryClient() if require_vendor else DeterministicDiscoveryDouble()
     guardrail = ProtegritySemanticGuardrailClient() if require_vendor else DeterministicGuardrailDouble()
@@ -59,6 +61,7 @@ def run(root: Path, require_vendor: bool) -> dict[str, Any]:
         response = agent.ask(scenario_id, question, expected)
         results.append({"scenario_id": scenario_id, "decision": response.decision, "security_result": response.security_result, "utility_result": response.utility_result})
     writer.flush()
+    events = [json.loads(line) for line in writer.output.read_text(encoding="utf-8").splitlines()]
 
     surfaces: dict[str, object] = {
         "vector_records": [{"text": document.text, "metadata": document.metadata} for document in agent.store.documents],
@@ -81,6 +84,15 @@ def run(root: Path, require_vendor: bool) -> dict[str, Any]:
     tracked = _git(root, "ls-files").splitlines()
     estate_paths = [root / item for item in tracked if not item.startswith("fixtures/") and not item.startswith("tests/")]
     public_findings = scan_paths(estate_paths, forbidden)
+    vendor_qualification = evaluate_vendor_qualification(
+        runtime_observation,
+        events,
+        security_pass=security_pass,
+        utility_pass=utility_pass,
+        adversarial_pass=adversarial_pass,
+        fallback_used=not require_vendor,
+    )
+    _write_json(run_dir / "VENDOR_QUALIFICATION.json", vendor_qualification)
     provenance = {
         "application_commit": _head_or_uncommitted(root),
         "python": platform.python_version(),
@@ -89,8 +101,19 @@ def run(root: Path, require_vendor: bool) -> dict[str, Any]:
         "data_discovery": "2.0.0",
         "semantic_guardrails": "1.1.1",
         "python_sdk": "not used in Path B",
-        "vendor_runtime_observed": require_vendor,
+        "vendor_runtime_observed": vendor_qualification["conditions"]["pinned_vendor_runtime_observed"],
+        "vendor_qualified": vendor_qualification["vendor_qualified"],
         "public_estate_forbidden_findings": len(public_findings),
     }
     _write_json(run_dir / "PROVENANCE_MANIFEST.json", provenance)
-    return {"security": security_pass, "utility": utility_pass, "adversarial": adversarial_pass, "evidence": evidence_pass, "public_estate": not public_findings, "vendor_observed": require_vendor, "run_dir": str(run_dir)}
+    return {
+        "security": security_pass,
+        "utility": utility_pass,
+        "adversarial": adversarial_pass,
+        "evidence": evidence_pass,
+        "public_estate": not public_findings,
+        "vendor_observed": vendor_qualification["vendor_available"],
+        "vendor_qualified": vendor_qualification["vendor_qualified"],
+        "vendor_qualification": vendor_qualification,
+        "run_dir": str(run_dir),
+    }

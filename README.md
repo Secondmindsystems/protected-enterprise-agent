@@ -46,6 +46,8 @@ For live vendor qualification, clone the pinned official repository outside this
 ```powershell
 $env:PROTEGRITY_DEV_EDITION_ROOT = 'C:\path\to\protegrity-ai-developer-edition'
 powershell -ExecutionPolicy Bypass -File .\scripts\start_protegrity.ps1
+$env:PYTHONPATH = "$PWD\src"
+python .\scripts\qualify_runtime.py --root .
 powershell -ExecutionPolicy Bypass -File .\scripts\run_qualification.ps1 -RequireVendor
 ```
 
@@ -66,6 +68,8 @@ Each canonical run writes sanitized artifacts under `evidence/runs/latest/`:
 - `FAIL_CLOSED_RESULTS.json`
 - `LEAK_SCAN_RESULTS.json`
 - `EVIDENCE_EVENTS.jsonl`
+- `RUNTIME_QUALIFICATION.json`
+- `VENDOR_QUALIFICATION.json`
 
 Run independent adjudication against a frozen commit:
 
@@ -74,7 +78,7 @@ $env:PYTHONPATH = "$PWD\src"
 .venv\Scripts\python .\scripts\adjudicate.py --root . --require-vendor
 ```
 
-Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALIZATION`. A deterministic-only run remains a rehearsal.
+Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALIZATION`. A deterministic-only run remains a rehearsal. Endpoint availability alone is insufficient: vendor qualification requires pinned runtime observation, real responses from both components, execution through the application vendor path, no fallback, a causal guardrail decision, and passing security, utility, and adversarial suites.
 
 ## Documentation
 
@@ -83,6 +87,8 @@ Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALI
 - [Known limitations](KNOWN_LIMITATIONS.md)
 - [Demo script](DEMO_SCRIPT.md)
 - [Attribution and provenance](docs/PROVENANCE.md)
+- [Campaign continuation](CAMPAIGN_STATE.md)
+- [Vendor source divergence](docs/VENDOR_SOURCE_DIVERGENCE.md)
 
 ## Data policy
 
@@ -91,4 +97,3 @@ All customer records are fictional and use reserved `.test` email domains plus s
 ## License
 
 Project code is MIT licensed. Protegrity components are not vendored here; consult the upstream repository and its license.
-
