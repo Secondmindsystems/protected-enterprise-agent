@@ -1,0 +1,3 @@
+# Runtime and test dependencies: Python standard library only.
+# Vendor services are provided by the pinned official Protegrity Compose files.
+

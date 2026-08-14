@@ -1,0 +1,15 @@
+{
+  "fixture_scope": "fictional-test-only",
+  "forbidden_values": [
+    "Avery North",
+    "avery.north@example.test",
+    "202-555-0147",
+    "111-22-3333",
+    "ACCT-10000001",
+    "Rowan Lake",
+    "rowan.lake@example.test",
+    "202-555-0198",
+    "222-33-4444",
+    "ACCT-10000002"
+  ]
+}

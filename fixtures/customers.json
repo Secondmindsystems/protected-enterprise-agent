@@ -1,0 +1,13 @@
+[
+  {
+    "fixture_id": "customer-001",
+    "record": "Customer Avery North email avery.north@example.test phone 202-555-0147 SSN 111-22-3333 account ACCT-10000001 has Gold service, account status ACTIVE, and support case CASE-104 requests a replacement card. Policy says active Gold customers receive expedited replacement.",
+    "expected_facts": ["Gold", "ACTIVE", "expedited replacement", "CASE-104"]
+  },
+  {
+    "fixture_id": "customer-002",
+    "record": "Customer Rowan Lake email rowan.lake@example.test phone 202-555-0198 SSN 222-33-4444 account ACCT-10000002 has Standard service, account status REVIEW, and support case CASE-208 concerns a disputed transfer. Policy says REVIEW accounts require fraud-team escalation.",
+    "expected_facts": ["Standard", "REVIEW", "fraud-team escalation", "CASE-208"]
+  }
+]
+
