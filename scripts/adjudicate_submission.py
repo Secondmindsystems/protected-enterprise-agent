@@ -64,7 +64,10 @@ def main() -> int:
         "required_public_artifacts": all((root / item).is_file() for item in required),
         "no_obsolete_threshold_claim": "default `0.70` policy is provisional" not in public_text and "highest observed score is compared" not in public_text,
         "surrogate_boundary_explicit": "not Protegrity tokenization" in public_text,
-        "two_compose_topology_disclosed": "two official local stacks" in public_text and "two files must not be collapsed" in public_text,
+        "two_compose_topology_disclosed": (
+            "two official local stacks" in public_text
+            and "two files must not be collapsed" in (root / "docs" / "VENDOR_SOURCE_DIVERGENCE.md").read_text(encoding="utf-8")
+        ),
         "demo_matches_s4_observation": "this request is blocked before retrieval" in (root / "DEMO_SCRIPT.md").read_text(encoding="utf-8"),
         "technical_receipt_matches_head": technical.get("commit") == head,
         "challenge_fit_pass": challenge["pass"] is True,
