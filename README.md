@@ -59,6 +59,15 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_tests.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\run_qualification.ps1
 ```
 
+Optionally replace only the model implementation with a local Ollama model. The deterministic backend remains the default; Ollama is untrusted downstream compute and stays between the same pre-dispatch Boundary C and post-output Boundary D checks:
+
+```powershell
+$env:PYTHONPATH = "$PWD\src"
+python -m protected_enterprise_agent.cli --root . --model-backend ollama --ollama-model gemma4:12b
+```
+
+This route sends only protected context after the guardrail has allowed the execution. A guardrail block or outage produces zero model calls, and model failure does not fall back silently.
+
 For live vendor qualification, clone the pinned official repository outside this repository, start both components, and rerun with the vendor gate:
 
 ```powershell

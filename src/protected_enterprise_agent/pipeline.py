@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Callable
 
 from .evidence import EvidenceWriter
+from .model_backends import backend_identity
 from .models import AgentResponse, BoundaryViolation, ProviderUnavailable
 from .protection import surrogate_transform
 from .providers import DiscoveryProvider, GuardrailProvider
@@ -38,6 +39,7 @@ class ProtectedEnterpriseAgent:
         self.forbidden = forbidden
         self.evidence = evidence
         self.model = model
+        self.model_backend, self.model_identifier = backend_identity(model)
         self.store = LocalVectorStore()
 
     def ingest(self, fixture_id: str, raw_record: str) -> str:
@@ -104,11 +106,16 @@ class ProtectedEnterpriseAgent:
             provider_component=self.guardrail.name, component_version=self.guardrail.version,
             decision="ALLOW", downstream_surface="application_response", raw_sensitive_data_present=False,
             utility_result=utility, security_result="PASS",
-            details={"risk_score": assessment.score, "retrieved_count": len(documents), "vendor_observed": self.guardrail.is_real_vendor},
+            details={
+                "risk_score": assessment.score,
+                "retrieved_count": len(documents),
+                "vendor_observed": self.guardrail.is_real_vendor,
+                "model_backend": self.model_backend,
+                "model_identifier": self.model_identifier,
+            },
         )
         return AgentResponse(response_text, "PASS", utility, "ALLOW", tuple(document.fixture_id for document in documents))
 
 
 def load_fixtures(path: Path) -> list[dict[str, object]]:
     return json.loads(path.read_text(encoding="utf-8"))
-

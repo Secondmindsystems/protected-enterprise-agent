@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .evidence import EvidenceWriter, verify_evidence
-from .pipeline import ProtectedEnterpriseAgent, load_fixtures
+from .pipeline import ModelProvider, ProtectedEnterpriseAgent, deterministic_model, load_fixtures
 from .providers import (
     DeterministicDiscoveryDouble,
     DeterministicGuardrailDouble,
@@ -42,7 +42,7 @@ def _head_or_uncommitted(root: Path) -> str:
         return "UNCOMMITTED"
 
 
-def run(root: Path, require_vendor: bool) -> dict[str, Any]:
+def run(root: Path, require_vendor: bool, model: ModelProvider = deterministic_model) -> dict[str, Any]:
     forbidden = load_leak_manifest(root / "fixtures" / "leak_manifest.json")
     run_dir = root / "evidence" / "runs" / "latest"
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -50,7 +50,7 @@ def run(root: Path, require_vendor: bool) -> dict[str, Any]:
     writer = EvidenceWriter(run_dir / "EVIDENCE_EVENTS.jsonl", forbidden)
     discovery = ProtegrityDiscoveryClient() if require_vendor else DeterministicDiscoveryDouble()
     guardrail = ProtegritySemanticGuardrailClient() if require_vendor else DeterministicGuardrailDouble()
-    agent = ProtectedEnterpriseAgent(discovery, guardrail, forbidden, writer)
+    agent = ProtectedEnterpriseAgent(discovery, guardrail, forbidden, writer, model)
     fixtures = load_fixtures(root / "fixtures" / "customers.json")
 
     results: list[dict[str, object]] = []
