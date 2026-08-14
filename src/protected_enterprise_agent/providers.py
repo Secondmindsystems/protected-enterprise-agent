@@ -54,6 +54,23 @@ class ProtegrityDiscoveryClient:
     def _normalize(cls, payload: object, text: str) -> list[Detection]:
         candidates: list[dict[str, object]] = []
 
+        if isinstance(payload, dict) and isinstance(payload.get("classifications"), dict):
+            for entity_type, entries in payload["classifications"].items():
+                if not isinstance(entries, list):
+                    continue
+                for entry in entries:
+                    if not isinstance(entry, dict) or not isinstance(entry.get("location"), dict):
+                        continue
+                    location = entry["location"]
+                    candidates.append(
+                        {
+                            "entity_type": str(entity_type),
+                            "start": location.get("start_index"),
+                            "end": location.get("end_index"),
+                            "score": entry.get("score", 1.0),
+                        }
+                    )
+
         def walk(node: object) -> None:
             if isinstance(node, dict):
                 keys = {str(key).lower() for key in node}
@@ -91,8 +108,12 @@ class ProtegritySemanticGuardrailClient:
     is_real_vendor: bool = True
 
     def assess(self, text: str) -> GuardrailAssessment:
-        body = json.dumps({"messages": [{"from": "user", "to": "ai", "content": text, "processors": ["customer-support", "pii"]}]}).encode("utf-8")
+        body = json.dumps({"messages": [{"from": "user", "to": "ai", "content": text, "processors": ["customer-support"]}]}).encode("utf-8")
         payload = _post(self.endpoint, body, "application/json", self.timeout)
+        return self._normalize(payload, self.threshold)
+
+    @classmethod
+    def _normalize(cls, payload: object, threshold: float = 0.70) -> GuardrailAssessment:
         scores: list[float] = []
         labels: list[str] = []
 
@@ -113,7 +134,15 @@ class ProtegritySemanticGuardrailClient:
         if not scores:
             raise ProviderUnavailable("malformed Semantic Guardrails result: no score")
         score = max(scores)
-        return GuardrailAssessment(score=score, decision="BLOCK" if score >= self.threshold else "ALLOW", labels=tuple(sorted(set(labels))))
+        batch = payload.get("batch") if isinstance(payload, dict) else None
+        outcome = str(batch.get("outcome", "")).lower() if isinstance(batch, dict) else ""
+        if outcome == "approved":
+            decision = "ALLOW"
+        elif outcome == "rejected":
+            decision = "BLOCK"
+        else:
+            decision = "BLOCK" if score >= threshold else "ALLOW"
+        return GuardrailAssessment(score=score, decision=decision, labels=tuple(sorted(set(labels))))
 
 
 class DeterministicDiscoveryDouble:
@@ -127,7 +156,7 @@ class DeterministicDiscoveryDouble:
         "EMAIL_ADDRESS": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
         "PHONE_NUMBER": re.compile(r"\b\d{3}-\d{3}-\d{4}\b"),
         "SOCIAL_SECURITY_ID": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
-        "ACCOUNT_NUMBER": re.compile(r"\bACCT-\d{8}\b"),
+        "CREDIT_CARD": re.compile(r"\b\d{16}\b"),
     }
 
     def discover(self, text: str) -> list[Detection]:
