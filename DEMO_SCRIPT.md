@@ -26,8 +26,12 @@ Run S4 with fictional direct user PII and show the pinned Semantic Guardrails ou
 
 ## 10:30-12:00 - Independent proof plane
 
-Run the canonical tests and leak scanner. Open the machine-readable security, adversarial, utility, fail-closed, provenance, and evidence-integrity results. Emphasize that the scanner searches exact canaries rather than trusting application narration.
+Run the canonical tests and leak scanner. Open the machine-readable security, adversarial, utility, fail-closed, provenance, and evidence-integrity results. Run `render_execution_proof.py` and show `PROVEN`. Emphasize that the renderer only reads receipts and that the scanner searches exact canaries rather than trusting application narration.
+
+Run `demo_fault_injection.py`. Show that a deterministic required-guardrail outage prevents model dispatch, a temporary missing vendor receipt renders `NOT PROVEN`, and restoring the guardrail restores the identical legitimate workflow. State explicitly that this is deterministic application fault injection, not evidence of vendor service behavior; the live-vendor evidence was established separately.
 
 ## 12:00-13:30 - Reproducibility and limits
 
 Show clean-clone setup, the frozen commit, and `KNOWN_LIMITATIONS.md`. State clearly that this is a prototype; application surrogates are not Protegrity tokenization; and tested absence is scoped to enumerated fixtures and surfaces.
+
+Close with: "Protegrity supplies the controls. Protected Enterprise Agent proves they governed the execution. Don't trust the README. Run the adjudicator."

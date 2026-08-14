@@ -4,6 +4,24 @@ Protected Enterprise Agent is a public-safe proof-of-concept for Protegrity's 20
 
 This repository is a prototype and tested architecture. It is not a production security product, compliance control, or guarantee against data leakage or prompt injection.
 
+## Per-execution causal qualification
+
+Protegrity supplies the controls. Protected Enterprise Agent proves they governed the execution.
+
+The distinction is deliberately narrow: control availability does not prove causal control participation, and missing required evidence cannot become `PASS`. The qualified path records real responses from both pinned Protegrity components, requires their causal effect, rejects fallback, binds the result to a frozen commit, and independently checks security, utility, adversarial behavior, fail-closed behavior, and evidence integrity.
+
+Installed is not enforced. Enforced is not proven.
+
+Render the existing proof without creating new evidence:
+
+```powershell
+$env:PYTHONPATH = "$PWD\src"
+python .\scripts\render_execution_proof.py --root .
+python .\scripts\demo_fault_injection.py --root .
+```
+
+The renderer is read-only. Missing, malformed, commit-mismatched, or failed required evidence renders `NOT PROVEN`. The fault-injection command is a deterministic application test, not evidence of vendor behavior.
+
 ## What the demo proves
 
 The canonical run makes four protection surfaces inspectable:
@@ -81,6 +99,8 @@ python .\scripts\adjudicate_submission.py --root .
 
 Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALIZATION`. A deterministic-only run remains a rehearsal. Endpoint availability alone is insufficient: vendor qualification requires pinned runtime observation, real responses from both components, execution through the application vendor path, no fallback, a causal guardrail decision, and passing security, utility, and adversarial suites.
 
+Don't trust the README. Run the adjudicator.
+
 ## Documentation
 
 - [Architecture](ARCHITECTURE.md)
@@ -92,6 +112,7 @@ Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALI
 - [Vendor source divergence](docs/VENDOR_SOURCE_DIVERGENCE.md)
 - [Evidence summary](docs/EVIDENCE_SUMMARY.md)
 - [Operator submission checklist](docs/SUBMISSION_CHECKLIST.md)
+- [Judge proof map](docs/JUDGE_PROOF_MAP.md)
 
 ## Data policy
 

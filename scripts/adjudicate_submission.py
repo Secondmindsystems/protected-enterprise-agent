@@ -57,7 +57,7 @@ def main() -> int:
 
     required = (
         "README.md", "ARCHITECTURE.md", "DEMO_SCRIPT.md", "KNOWN_LIMITATIONS.md",
-        "docs/THREAT_MODEL.md", "docs/PROVENANCE.md", "docs/EVIDENCE_SUMMARY.md", "docs/SUBMISSION_CHECKLIST.md",
+        "docs/THREAT_MODEL.md", "docs/PROVENANCE.md", "docs/EVIDENCE_SUMMARY.md", "docs/SUBMISSION_CHECKLIST.md", "docs/JUDGE_PROOF_MAP.md",
     )
     public_text = "\n".join((root / item).read_text(encoding="utf-8") for item in required if (root / item).is_file())
     congruence_checks = {
@@ -71,6 +71,12 @@ def main() -> int:
         "demo_matches_s4_observation": "this request is blocked before retrieval" in (root / "DEMO_SCRIPT.md").read_text(encoding="utf-8"),
         "technical_receipt_matches_head": technical.get("commit") == head,
         "challenge_fit_pass": challenge["pass"] is True,
+        "execution_proof_surface_present": (
+            (root / "scripts" / "render_execution_proof.py").is_file()
+            and (root / "scripts" / "demo_fault_injection.py").is_file()
+            and "missing required evidence cannot become `PASS`" in public_text
+            and "Don't trust the README. Run the adjudicator." in public_text
+        ),
     }
     congruence = {
         "schema_version": "1.0",

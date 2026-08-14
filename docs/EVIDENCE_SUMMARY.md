@@ -31,3 +31,5 @@ The authoritative generated artifacts are under `evidence/runs/latest/` and are 
 ## Reproduction
 
 Follow `README.md`, run live qualification, run `scripts/adjudicate.py --require-vendor`, then run `scripts/adjudicate_submission.py`. A deterministic-only result is a rehearsal and cannot support externalization qualification.
+
+For the compact claim-to-proof view, see `docs/JUDGE_PROOF_MAP.md`. `scripts/render_execution_proof.py` renders only existing receipts and must return `NOT PROVEN` when a required receipt is unavailable or any required gate fails.

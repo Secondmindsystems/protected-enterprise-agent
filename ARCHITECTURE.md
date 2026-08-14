@@ -30,6 +30,18 @@ flowchart TD
 
 The deterministic provider classes exist only for fast reproducible contract and security tests. Evidence records whether a real vendor component or test double produced each result.
 
+## Qualification plane
+
+The qualification plane does not add another control or pipeline stage. It asks whether the pinned controls actually participated in this run and whether the run satisfied every required proof gate.
+
+```text
+running service != causal participation
+causal participation != proven execution
+missing required evidence -> NOT PROVEN
+```
+
+`scripts/render_execution_proof.py` reads the existing generated receipts and renders their state. It does not collect evidence, repair gaps, or infer success. `scripts/adjudicate.py` remains the independent decision surface: it binds the live vendor path, full regression, leak/claim scans, clean tree, and frozen commit. Protegrity Data Discovery and Semantic Guardrails remain the causal controls in the application path.
+
 ## Protection stages
 
 | Stage | Sensitive-data control | Independent proof |

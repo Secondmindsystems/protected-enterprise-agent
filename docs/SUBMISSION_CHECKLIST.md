@@ -8,6 +8,8 @@ Official challenge facts were rechecked on August 13, 2026. The public page requ
 - [x] Architecture overview and trust-boundary diagram in `ARCHITECTURE.md`
 - [x] 10-15 minute recording script in `DEMO_SCRIPT.md`
 - [x] Evidence-to-claim map in `docs/EVIDENCE_SUMMARY.md`
+- [x] Judge-facing Claim -> Control -> Evidence -> Reproduce map in `docs/JUDGE_PROOF_MAP.md`
+- [x] Read-only execution-proof renderer and deterministic negative-proof demo
 - [x] Threat model, provenance, source-divergence record, and limitations
 - [x] Independent technical adjudicator and submission-specific adjudicator
 - [x] Fresh-clone live reproduction receipt
