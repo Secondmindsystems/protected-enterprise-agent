@@ -76,6 +76,7 @@ Run independent adjudication against a frozen commit:
 ```powershell
 $env:PYTHONPATH = "$PWD\src"
 .venv\Scripts\python .\scripts\adjudicate.py --root . --require-vendor
+python .\scripts\adjudicate_submission.py --root .
 ```
 
 Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALIZATION`. A deterministic-only run remains a rehearsal. Endpoint availability alone is insufficient: vendor qualification requires pinned runtime observation, real responses from both components, execution through the application vendor path, no fallback, a causal guardrail decision, and passing security, utility, and adversarial suites.
@@ -89,6 +90,8 @@ Only an adjudication `PASS` supports the state `QUALIFIED_FOR_OPERATOR_EXTERNALI
 - [Attribution and provenance](docs/PROVENANCE.md)
 - [Campaign continuation](CAMPAIGN_STATE.md)
 - [Vendor source divergence](docs/VENDOR_SOURCE_DIVERGENCE.md)
+- [Evidence summary](docs/EVIDENCE_SUMMARY.md)
+- [Operator submission checklist](docs/SUBMISSION_CHECKLIST.md)
 
 ## Data policy
 

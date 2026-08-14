@@ -46,6 +46,48 @@ def _compose_services(compose_file: Path) -> list[dict[str, object]]:
     return [row for row in rows if isinstance(row, dict)]
 
 
+def _resolved_compose(compose_file: Path) -> dict[str, Any]:
+    parsed = json.loads(_command("docker", "compose", "-f", str(compose_file), "config", "--format", "json"))
+    if not isinstance(parsed, dict):
+        raise RuntimeError(f"resolved compose config is not an object: {compose_file}")
+    services = parsed.get("services", {})
+    return {
+        "compose_file": str(compose_file),
+        "project_name": parsed.get("name"),
+        "networks": sorted((parsed.get("networks") or {}).keys()),
+        "services": {
+            name: {
+                "image": value.get("image"),
+                "ports": value.get("ports", []),
+                "networks": sorted((value.get("networks") or {}).keys()) if isinstance(value.get("networks"), dict) else value.get("networks", []),
+            }
+            for name, value in services.items()
+            if isinstance(value, dict)
+        },
+    }
+
+
+def _container_receipts(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    receipts: list[dict[str, object]] = []
+    for row in rows:
+        container_id = str(row.get("ID") or row.get("Id") or row.get("Name") or "")
+        if not container_id:
+            continue
+        inspected = json.loads(_command("docker", "inspect", container_id))[0]
+        image_id = str(inspected.get("Image", ""))
+        image_details = json.loads(_command("docker", "image", "inspect", image_id))[0] if image_id else {}
+        receipts.append({
+            "container_id": str(inspected.get("Id", "")),
+            "name": str(inspected.get("Name", "")).lstrip("/"),
+            "state": (inspected.get("State") or {}).get("Status"),
+            "image_reference": (inspected.get("Config") or {}).get("Image"),
+            "image_id": image_id,
+            "repo_digests": image_details.get("RepoDigests") or [],
+            "published_ports": row.get("Publishers") or row.get("Ports") or [],
+        })
+    return receipts
+
+
 def observe_runtime(vendor_root: Path | None = None) -> dict[str, Any]:
     root_value = vendor_root or (Path(os.environ["PROTEGRITY_DEV_EDITION_ROOT"]) if os.environ.get("PROTEGRITY_DEV_EDITION_ROOT") else None)
     if root_value is None:
@@ -61,6 +103,7 @@ def observe_runtime(vendor_root: Path | None = None) -> dict[str, Any]:
     compose_version = _version_tuple(compose_text)
     server_os = _command("docker", "info", "--format", "{{.OSType}}")
     server_version = _command("docker", "version", "--format", "{{.Server.Version}}")
+    wsl_version = _command("wsl.exe", "--version")
     _command("docker", "run", "--rm", "hello-world", timeout=180)
 
     data_services = _compose_services(data_compose)
@@ -86,6 +129,12 @@ def observe_runtime(vendor_root: Path | None = None) -> dict[str, Any]:
         "data_discovery_service_count": len(data_services),
         "semantic_guardrail_service_count": len(semantic_services),
         "running_service_count": len(running),
+        "wsl_version": [line.strip() for line in wsl_version.replace("\x00", "").splitlines() if line.strip()],
+        "resolved_compose": {
+            "data_discovery": _resolved_compose(data_compose),
+            "semantic_guardrails": _resolved_compose(semantic_compose),
+        },
+        "containers": _container_receipts(all_services),
     }
     return observed
 

@@ -26,7 +26,7 @@ flowchart TD
 
 `ProtegrityDiscoveryClient` calls the documented Data Discovery HTTP API. Its returned spans determine which source substrings are replaced; absent or malformed trustworthy classification causes a fail-closed error instead of raw forwarding.
 
-`ProtegritySemanticGuardrailClient` calls the documented Semantic Guardrails conversation API. The highest observed score is compared with the calibrated application threshold and causally determines allow versus block. The application policy remains explicit because the vendor score is evidence, not an automatic claim of universal prevention.
+`ProtegritySemanticGuardrailClient` calls the documented Semantic Guardrails conversation API with the pinned `customer-support` processor. The pinned API's authoritative batch outcome is normalized to `ALLOW` or `BLOCK` and causally determines whether retrieval and model dispatch may proceed. Scores and labels remain evidence for inspection; they are not reinterpreted as a universal prevention claim. A local score threshold is used only as a compatibility fallback if a future response omits the outcome field, and that fallback is visible in evidence.
 
 The deterministic provider classes exist only for fast reproducible contract and security tests. Evidence records whether a real vendor component or test double produced each result.
 
@@ -46,4 +46,3 @@ Provider timeout, connection error, malformed result, absent classification on a
 ## Utility plane
 
 Business facts such as service tier, account state, support case, and required policy action survive protection. Expected facts are evaluated independently from the security result. Qualification requires both.
-

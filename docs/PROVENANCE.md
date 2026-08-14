@@ -7,7 +7,7 @@
 - AI Developer Edition: 1.2.0
 - Data Discovery: 2.0.0
 - Semantic Guardrails: 1.1.1
-- Python SDK: 1.2.1 upstream; not used by the credential-independent Path B
+- Python SDK: not used by the credential-independent Path B
 - Upstream license: MIT at the pinned repository
 
 No upstream code, images, or model assets are vendored into this repository. Runtime containers are pulled by the official upstream Compose files.
@@ -21,4 +21,3 @@ The same page listed August 10 finalist notification and August 24 submission/wi
 ## Local implementation
 
 The project uses Python standard-library components for HTTP, sparse retrieval, evidence hashing, JSON, and tests. No confidential third-party corpus or real personal data is included.
-
