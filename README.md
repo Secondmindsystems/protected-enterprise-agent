@@ -47,7 +47,7 @@ The pinned vendor release is AI Developer Edition 1.2.0, with Data Discovery 2.0
 Create a virtual environment and install the local package:
 
 ```powershell
-py -3.12 -m venv .venv
+python -m venv .venv
 .venv\Scripts\python -m pip install -e .
 ```
 
